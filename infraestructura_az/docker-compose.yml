@@ -1,0 +1,49 @@
+version: '3'
+
+networks:
+  azcreationflow_net:
+    ipam:
+      config:
+        - subnet: 172.125.0.0/24
+
+services:
+  catalog:
+    image: catalog
+    build:
+      context: .
+      dockerfile: ./DockerFiles/catalog.dockerfile
+    restart: always
+    ports:
+    - "6070:5050"
+    env_file:
+    - ./variables.env
+    environment:
+      mongo_bdd: catalogadmin
+      mongo_bdd_server: mongo_catalog
+    networks:
+      azcreationflow_net:
+        ipv4_address: 172.125.0.10
+  mongo_catalog:
+    image: mongo:4.4.1
+    restart: always
+    volumes: 
+    - ./db/mongo_catalog_data:/data/db
+    env_file:
+    - ./variables.env
+    networks:
+      azcreationflow_net:
+        ipv4_address: 172.125.0.20
+  mongo_catalog_express :
+    image: mongo-express:latest
+    restart: always
+    ports:
+    - "9070:8081"
+    env_file:
+    - ./variables.env
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo_catalog
+    networks:
+      azcreationflow_net:
+        ipv4_address: 172.125.0.21
+    links:
+    - mongo_catalog

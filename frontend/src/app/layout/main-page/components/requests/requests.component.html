@@ -1,0 +1,123 @@
+<div class="row">
+  <div class="col-6 mt-3">
+    <h3>Listado de Solicitudes <button *ngIf="!is_resource_deployer && !is_dev_approval && !is_infra_approval" type="button" class="btn btn-primary" (click)="new_request(); openDialog(content_request)"><i class="fas fa-plus"></i>&nbsp;Nueva Solicitud</button></h3>
+  </div>
+  <div class="col-6 mt-3">
+    <div class="input-group mb-3">
+      <span class="input-group-text">Filtro</span>
+      <select class="form-select" name="filter_defined" [(ngModel)]="filter" (change)="filter_change()">
+        <option [value]="'Solicitado Aprobación Desarrollo'">Solicitado Aprobación Desarrollo</option>
+        <option [value]="'Aprobado Desarrollo'">Aprobado Desarrollo</option>
+        <option [value]="'Rechazado Desarrollo'">Rechazado Desarrollo</option>
+        <option [value]="'Solicitado Aprobación Infraestructura'">Solicitado Aprobación Infraestructura</option>
+        <option [value]="'Aprobado Infraestructura'">Aprobado Infraestructura</option>
+        <option [value]="'Rechazado Infraestructura'">Rechazado Infraestructura</option>
+        <option [value]="'Recurso Creado'">Recurso Creado</option>
+        <option [value]="''">Todos</option>
+      </select>
+      <input type="text" class="form-control" name="filter" [(ngModel)]="filter" (input)="filter_change()"/>
+    </div>
+  </div>
+  <div class="col-12 mt-3">
+    <table class="table table-light table-striped table-hover">
+      <thead>
+        <th>Fecha</th>
+        <th>Solicitante</th>
+        <th>Grupo de Recursos</th>
+        <th>Nombre de Recurso</th>
+        <th>Aprobación Desarrollo</th>
+        <th>Aprobación Infraestructura</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </thead>
+      <tbody>
+        <tr *ngFor="let request of datos_slice">
+          <td>{{request.date}}</td>
+          <td>{{request.user}}</td>
+          <td>{{request.resource_group}}</td>
+          <td>{{request.resource_name}}</td>
+          <td>
+            <span *ngIf="request.approved_dev == 'Aprobado'"class="badge text-bg-success">Aprobado</span>
+            <span *ngIf="request.approved_dev == 'Rechazado'"class="badge text-bg-danger">Rechazado</span>
+            <span *ngIf="request.approved_dev == 'Pendiente'"class="badge text-bg-secondary">Pendiente</span>
+            <span *ngIf="request.approved_dev == 'no solicitado'"class="badge text-bg-warning">No Solicitado</span>
+          </td>
+          <td>
+            <span *ngIf="request.approved_infra == 'Aprobado'"class="badge text-bg-success">Aprobado</span>
+            <span *ngIf="request.approved_infra == 'Rechazado'"class="badge text-bg-danger">Rechazado</span>
+            <span *ngIf="request.approved_infra == 'Pendiente'"class="badge text-bg-secondary">Pendiente</span>
+            <span *ngIf="request.approved_infra == 'no solicitado'"class="badge text-bg-warning">No Solicitado</span>
+          </td>
+          <td>{{request.result_state}}</td>
+          <td>
+            <div class="btn-group">
+              <button type="button" class="btn btn-warning btn-sm" title="Editar" (click)="request_selected = request; openDialog(content_request)">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="col-12 mt-2 mb-2">
+    <div class="d-flex justify-content-between p-2">
+      <ngb-pagination
+        [boundaryLinks]="true"
+        [collectionSize]="collectionSize"
+        [(page)]="page"
+        [pageSize]="pageSize"
+        (pageChange)="refreshTable()">
+        <ng-template ngbPaginationFirst>Primera</ng-template>
+        <ng-template ngbPaginationLast>Última</ng-template>
+        <ng-template ngbPaginationPrevious>Anterior</ng-template>
+        <ng-template ngbPaginationNext>Siguiente</ng-template>
+        <ng-template ngbPaginationPages let-page let-pages="pages">
+          <li class="ngb-custom-pages-item" *ngIf="pages.length > 0">
+            <div class="form-group d-flex flex-nowrap px-2">
+              <label id="paginationInputLabel" for="paginationInput" class="col-form-label mr-2 ml-1">
+                Página
+              </label>
+              <div class="input-group mb-3">
+                <input #i
+                  type="number"
+                  class="form-control"
+                  id="paginationInput"
+                  [value]="page"
+                  (keyup.enter)="selectPage(i.value)"
+                  (blur)="selectPage(i.value)"
+                />
+                <button type="button" class="btn btn-primary" (click)="selectPage(i.value)">
+                  ir
+                </button>
+              </div>
+              <span id="paginationDescription" class="col-form-label text-nowrap px-2">
+                de {{pages.length}}
+              </span>
+            </div>
+          </li>
+        </ng-template>
+      </ngb-pagination>
+    </div>
+  </div>
+</div>
+<ng-template #content_request let-modal>
+  <div class="modal-header">
+		<h4 class="modal-title" id="modal-basic-title">Solicitud de Recursos de Nube</h4>
+		<button type="button" class="btn-close" (click)="modal.dismiss('Cross click')"></button>
+	</div>
+  <div class="modal-body">
+    <div class="row">
+      <app-request (reload)="reload_requests(); modal.dismiss('Request Saved')"
+        [request]="request_selected"
+        [user]="user"
+        [resource_deployers]="resource_deployers"
+        [approvals_dev]="approvals_dev"
+        [approvals_infra]="approvals_infra"
+        [is_resource_deployer]="is_resource_deployer"
+        [is_dev_approval]="is_dev_approval"
+        [is_infra_approval]="is_infra_approval"
+        ></app-request>
+    </div>
+  </div>
+</ng-template>

@@ -1,0 +1,169 @@
+<div class="row p-2">
+  <div class="col-12">
+    <h3>Datos de la Solicitud</h3>
+  </div>
+  <div class="col-6">
+    <label for="request_date" class="form-label" style="color: #0f265c;">Fecha de Solicitud</label>
+    <label class="form-control" name="request_date">{{request.date | date: 'y-MM-dd'}}</label>
+  </div>
+  <div class="col-6">
+    <label for="request_person_name" class="form-label" style="color: #0f265c;">Solicitante</label>
+    <label class="form-control" name="request_date">{{request.user}}</label>
+  </div>
+  <div class="col-12">
+    <label for="resource_description" class="form-label" style="color: #0f265c;">Descripción</label>
+    <textarea class="form-control" name="resource_description" placeholder="Descripción" [(ngModel)]="request.description"></textarea>
+  </div>
+  <div class="col-4">
+    <label for="cloud" class="form-label" style="color: #0f265c;">Nube</label>
+    <select [disabled]="request.result_state !== ''" class="form-select" name="cloud" [(ngModel)]="request.cloud" (change)="cloud_selected()">
+      <option selected disabled [value]="''">Seleccione</option>
+      <option *ngFor="let cloud of clouds" [value]="cloud.name">{{cloud.fabricant}} - {{cloud.name}}</option>
+    </select>
+  </div>
+  <div class="col-4">
+    <label for="resource_group" class="form-label" style="color: #0f265c;">Grupo de Recursos</label>
+    <input class="form-control" type="text" name="resource_group" placeholder="Grupo de Recursos" [(ngModel)]="request.resource_group">
+  </div>
+  <div class="col-4">
+    <label for="resource_name" class="form-label" style="color: #0f265c;">Nombre del Recurso</label>
+    <input class="form-control" type="text" name="resource_name" placeholder="Nombre del Recurso" [(ngModel)]="request.resource_name">
+  </div>
+  <div class="col-4">
+    <label for="resource_type" class="form-label" style="color: #0f265c;">Tipo de Recurso</label>
+    <input class="form-control" [disabled]="request.result_state !== ''" type="text" id="resource_type" name="resource_type" placeholder="Tipo de Recurso" [(ngModel)]="request.resource_type" list="artifact_type_list">
+    <datalist id="artifact_type_list">
+      <option *ngFor="let artifact_type of artifact_types_shown" [value]="artifact_type.type">
+    </datalist>
+  </div>
+  <div class="col-4">
+    <label for="resource_project" class="form-label" style="color: #0f265c;">Proyecto Asociado al Recurso</label>
+    <input class="form-control" [disabled]="request.result_state !== ''" type="text" name="resource_project" placeholder="Proyecto Asociado al Recurso" [(ngModel)]="request.project">
+  </div>
+  <div class="col-4">
+    <label for="resource_cost" class="form-label" style="color: #0f265c;">Costo del Recurso (USD)</label>
+    <input class="form-control" [disabled]="request.result_state !== ''" type="number" step="0.01" name="resource_cost" placeholder="Costo del Recurso (USD)" [(ngModel)]="request.cost">
+    <small *ngIf="request.cloud == 'Azure'"><a href="https://azure.microsoft.com/es-mx/pricing/calculator/" target="_blank">Calculadora de Precios - Azure</a></small>
+    <small *ngIf="request.cloud == 'AWS'"><a href="https://calculator.aws/" target="_blank">Calculadora de Precios - Amazon</a></small>
+    <small *ngIf="request.cloud == 'GCP'"><a href="https://cloud.google.com/products/calculator/" target="_blank">Calculadora de Precios - Google</a></small>
+  </div>
+  <div class="col-12">
+    <label for="attachments" class="form-label" style="color: #0f265c;">Adjuntos</label>
+  </div>
+  <div class="col-12">
+    <ngx-file-drop *ngIf="request.result_state == ''" dropZoneLabel="Arrastre los Archivos Aquí" (onFileDrop)="dropped($event)">
+      <ng-template ngx-file-drop-content-tmp let-openFileSelector="openFileSelector">
+        <p class="col-12 text-center" (click)="openFileSelector()">
+          <span>
+            <small>Arrastre aquí el o los archivos que desea adjuntar.<br/>
+            Se acepta máximo {{max_file_size}}MB por cada Archivo.<br/>
+            Se aceptan máximo {{max_file_count}} archivos.
+            </small>
+          </span>
+        </p>
+      </ng-template>
+    </ngx-file-drop>
+    <div class="col-12 mt-3">
+      <table class="table">
+        <thead>
+          <tr>
+            <th><small><strong>Archivos Cargados</strong></small></th>
+            <th colspan="2">&nbsp;<span *ngIf="request.files.length > max_file_count || (request.files.length == 0) || !validate_file_size" class="ml-2 badge bg-danger text-light">Incorrecto</span></th>
+          </tr>
+        </thead>
+        <tbody class="upload-name-style">
+          <tr *ngFor="let item of request.files">
+            <td><small>{{ item.name }}</small></td>
+            <td>&nbsp;<span *ngIf="item.size > (max_file_size*1024*1024)" class="ml-2 badge bg-danger">Mayor {{max_file_size}}MB</span></td>
+            <td>
+              <div class="btn-group" role="group">
+                <button type="button" class="btn btn-info" title="Descargar" (click)="download_file(item)">
+                  <i class="fas fa-download"></i>
+                </button>
+                <button [disabled]="request.result_state !== ''" type="button" class="btn btn-danger" title="Eliminar" (click)="delete_file(item)">
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="col-12 mt-3">
+    <h3>Aprobaciones</h3>
+  </div>
+  <div class="col-12">
+    <label for="resource_approval_dev" class="form-label" style="color: #0f265c;">Aprobación de Desarrollo</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Aprobador</span>
+      <select class="form-select" [disabled]="request.approved_dev !== 'no solicitado'" name="resource_approval_dev" [(ngModel)]="request.approval_dev">
+        <option selected disabled [value]="''">Seleccione</option>
+        <option *ngFor="let approval_dev of approvals_dev" [value]="approval_dev.email">{{approval_dev.name}} ({{approval_dev.email}})</option>
+      </select>
+      <button [disabled]="request.approval_dev == ''" class="btn btn-primary" *ngIf="request.approved_dev == 'no solicitado' && !is_dev_approval" (click)="request_approval_dev()"><i class="fas fa-envelope"></i>&nbsp;Solicitar Aprobación</button>
+      <span class="input-group-text" *ngIf="request.approved_dev !== 'no solicitado' || is_dev_approval">Aprobación</span>
+      <select class="form-select" [disabled]="!(is_dev_approval && request.approved_infra == 'no solicitado' && request.approval_dev == user)" *ngIf="request.approved_dev !== 'no solicitado' || is_dev_approval" name="resource_approval_dev_values" [(ngModel)]="request.approved_dev">
+        <option selected disabled>Seleccione</option>
+        <option [value]="'Aprobado'">Aprobado</option>
+        <option [value]="'Rechazado'">Rechazado</option>
+        <option [value]="'Pendiente'" disabled>Pendiente</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-12" *ngIf="!(request.result_state == 'Rechazado Desarrollo' || request.result_state == 'Solicitado Aprobación Desarrollo' || request.result_state == '') &&
+                              !(request.result_state == 'Aprobado Desarrollo' && is_dev_approval)
+                            ">
+    <label for="resource_approval_infra" class="form-label" style="color: #0f265c;">Aprobación de Infraestructura</label>
+    <div class="input-group mb-3">
+      <span class="input-group-text">Aprobador</span>
+      <select [disabled]="request.result_state == 'Solicitado Aprobación Infraestructura' ||
+                          request.result_state == 'Aprobado Infraestructura' ||
+                          request.result_state == 'Recurso Creado' ||
+                          request.result_state == 'Rechazado Infraestructura'" class="form-select" name="resource_approval_infra" [(ngModel)]="request.approval_infra">
+        <option selected disabled [value]="''">Seleccione</option>
+        <option *ngFor="let approval_infra of approvals_infra" [value]="approval_infra.email">{{approval_infra.name}} ({{approval_infra.email}})</option>
+      </select>
+      <button [disabled]="request.approval_infra == ''" class="btn btn-primary" *ngIf="request.approved_infra == 'no solicitado' && !is_infra_approval" (click)="request_approval_infra()"><i class="fas fa-envelope"></i>&nbsp;Solicitar Aprobación</button>
+      <span class="input-group-text" *ngIf="request.approved_infra !== 'no solicitado' || is_infra_approval">Aprobación</span>
+      <select class="form-select" [disabled]="!(is_infra_approval && request.approval_infra == user) ||
+          request.result_state == 'Recurso Creado'" *ngIf="request.approved_infra !== 'no solicitado' || is_infra_approval" name="resource_approval_infra_values" [(ngModel)]="request.approved_infra">
+        <option selected disabled>Seleccione</option>
+        <option [value]="'Aprobado'">Aprobado</option>
+        <option [value]="'Rechazado'">Rechazado</option>
+        <option [value]="'Pendiente'" disabled>Pendiente</option>
+      </select>
+    </div>
+  </div>
+  <div class="col-12 mt-3 text-center">
+    <button class="btn btn-dark" *ngIf="is_dev_approval &&
+                    !(request.result_state == 'Solicitado Aprobación Infraestructura' ||
+                      request.result_state == 'Aprobado Infraestructura' ||
+                      request.result_state == 'Rechazado Infraestructura' ||
+                      request.result_state == 'Recurso Creado')" (click)="save_request_dev()"><i class="fas fa-save"></i>&nbsp;Guardar Solicitud</button>
+    <button class="btn btn-dark" *ngIf="is_infra_approval &&
+                    !(request.result_state == 'Solicitado Aprobación Desarrollo' ||
+                      request.result_state == 'Aprobado Desarrollo'||
+                      request.result_state == 'Recurso Creado'||
+                      request.result_state == 'Rechazado Desarrollo' ||
+                      request.result_state == '')" (click)="save_request_infra()"><i class="fas fa-save"></i>&nbsp;Guardar Solicitud</button>
+  </div>
+  <div class="col-12 mt-3" *ngIf="is_resource_deployer">
+    <h3>Estado de Solicitud</h3>
+  </div>
+  <div class="col-12" *ngIf="is_resource_deployer">
+    <select [disabled]="!(is_resource_deployer && request.approved_dev == 'Aprobado' && request.approved_infra == 'Aprobado')"class="form-select" name="request_state" [(ngModel)]="request.result_state">
+      <option selected [value]="''" disabled>Seleccione</option>
+      <option disabled [value]="'Solicitado Aprobación Desarrollo'">Solicitado Aprobación Desarrollo</option>
+      <option disabled [value]="'Aprobado Desarrollo'">Aprobado Desarrollo</option>
+      <option disabled [value]="'Rechazado Desarrollo'">Rechazado Desarrollo</option>
+      <option disabled [value]="'Solicitado Aprobación Infraestructura'">Solicitado Aprobación Infraestructura</option>
+      <option disabled [value]="'Aprobado Infraestructura'">Aprobado Infraestructura</option>
+      <option disabled [value]="'Rechazado Infraestructura'">Rechazado Infraestructura</option>
+      <option [value]="'Recurso Creado'">Recurso Creado</option>
+    </select>
+  </div>
+  <div class="col-12 mt-3 text-center" *ngIf="is_resource_deployer && request.approved_dev == 'Aprobado' && request.approved_infra == 'Aprobado'">
+    <button class="btn btn-dark" (click)="save_request_resource_deployer()"><i class="fas fa-save"></i>&nbsp;Guardar Solicitud</button>
+  </div>
+</div>
