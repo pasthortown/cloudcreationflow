@@ -7,14 +7,18 @@
         </div>
         <div class="col-12 mb-3">
           <label for="usuario" class="form-label" style="color: #0f265c;">Usuario</label>
-          <input class="form-control" type="text" name="usuario" placeholder="Usuario">
+          <div class="input-group mb-3">
+            <input class="form-control" type="text" name="usuario" placeholder="Usuario" [(ngModel)]="email">
+            <span class="input-group-text">@kfc.com.ec</span>
+          </div>
+          <div *ngIf="email.includes('@')" style="color: red;">Escriba su usuario de dominio sin @kfc.com.ec</div>
         </div>
         <div class="col-12 mb-5">
           <label for="contrasena" class="form-label" style="color: #0f265c;">Contraseña</label>
-          <input class="form-control" type="password" name="contrasena" placeholder="Contraseña">
+          <input class="form-control" type="password" name="contrasena" placeholder="Contraseña" [(ngModel)]="password" (keyup.enter)="login()">
         </div>
         <div class="col-12">
-          <button class="btn btn-primary col-12" (click)="login()">Ingresar</button>
+          <button class="btn btn-primary col-12" (click)="login()" [disabled]="email.includes('@')">Ingresar</button>
         </div>
       </div>
     </div>

@@ -7,6 +7,7 @@ import { LoginRoutingModule } from './login-routing.module';
 import { LoginComponent } from './login.component';
 import { LeftSectionComponent } from './components/left-section/left-section.component';
 import { RightSectionComponent } from './components/right-section/right-section.component';
+import { AuthService } from '../services/auth.service';
 
 @NgModule({
     imports: [
@@ -16,6 +17,6 @@ import { RightSectionComponent } from './components/right-section/right-section.
       NgbModule
     ],
     declarations: [LoginComponent, LeftSectionComponent, RightSectionComponent],
-    providers: []
+    providers: [AuthService]
 })
 export class LoginModule {}

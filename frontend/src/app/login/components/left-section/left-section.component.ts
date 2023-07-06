@@ -1,6 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { ActivatedRoute } from '@angular/router'
+import { ToastrService } from 'ngx-toastr';
+import { AuthService } from 'src/app/services/auth.service';
 
 @Component({
   selector: 'app-left-section',
@@ -9,7 +11,10 @@ import { ActivatedRoute } from '@angular/router'
 })
 export class LeftSectionComponent implements OnInit{
 
-  constructor(private router: Router, private activateRoute: ActivatedRoute) {}
+  email: string = '';
+  password: string = '';
+
+  constructor(private router: Router, private activateRoute: ActivatedRoute, private authService: AuthService, private toastr: ToastrService) {}
 
   ngOnInit() {
     sessionStorage.clear();
@@ -21,7 +26,19 @@ export class LeftSectionComponent implements OnInit{
   }
 
   login() {
-    sessionStorage.setItem('user', 'luis.salazar@kfc.com.ec');
-    this.router.navigate(['/main']);
+    this.authService.ldap_auth(this.email, this.password).then((r: any) => {
+      if (r.response == 'Usuario Autorizado') {
+        sessionStorage.setItem('user', r.userdata);
+        this.toastr.success('Usuario Autorizado');
+        this.router.navigate(['/main']);
+      } else {
+        this.email = '';
+        this.password = '';
+        this.toastr.error('Credenciales Incorrectos');
+      }
+    }).catch( e => {
+      sessionStorage.clear();
+      this.router.navigate(['/login']);
+    });
   }
 }

@@ -4,13 +4,11 @@ WORKDIR /usr/src/app
 
 RUN apt-get update
 RUN apt-get install -y libsasl2-dev libldap2-dev libssl-dev
-COPY requirements.txt ./
+COPY AuthWS/requirements.txt ./
 RUN pip install -r requirements.txt
 RUN echo "America/Bogota" > /etc/timezone
 
-COPY auth.py .
-COPY mailer.py .
-COPY Templates ./Templates
+COPY AuthWS/auth.py .
 
 EXPOSE 5050
 
