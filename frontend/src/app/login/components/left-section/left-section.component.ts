@@ -29,6 +29,7 @@ export class LeftSectionComponent implements OnInit{
     this.authService.ldap_auth(this.email, this.password).then((r: any) => {
       if (r.response == 'Usuario Autorizado') {
         sessionStorage.setItem('user', r.userdata);
+        sessionStorage.setItem('token', r.token);
         this.toastr.success('Usuario Autorizado');
         this.router.navigate(['/main']);
       } else {
